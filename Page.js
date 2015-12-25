@@ -29,7 +29,7 @@ var BpPage = React.createClass({
       wrapperProps.keyboardDismissMode = 'interactive';
     }
     var title = this.props.title ?
-      <BpTitle title={this.props.title} /> :
+      <BpTitle title={this.props.title} navigator={this.props.navigator} /> :
       null;
     var spacer = this.props.noSpacer ? null : <View style={styles.spacer} />;
     return (

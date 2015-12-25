@@ -32,14 +32,15 @@ var BpTitle = React.createClass({
   selectedTabIcons: [],
   unselectedTabIcons: [],
   getInitialState: function() {
+    var activeTab  = (this.props.title) ? this.props.title.toString().toLowerCase() :'activity';
     return {
-      activeTab: 0,
+      activeTab: activeTab,
     };
   },
   renderTabOption(name, page) {
 
     var style = [];
-    if( this.state.activeTab === page ){
+    if( this.state.activeTab === name ){
       style = styles.active;
     }
     return this.renderItem(name, page, style);
@@ -48,11 +49,13 @@ var BpTitle = React.createClass({
   renderItem : function(name, page, style){
     return (
       <View style={style} key={name + page}>
-
-      <TitleNavButton
+        <TitleNavButton
           onPress={() => {
-            this.setState({activeTab: page});
-          }}
+            this.props.navigator.push({
+              id: name,
+            });
+          }
+        }
           text={name.toUpperCase()}
         />
       </View>

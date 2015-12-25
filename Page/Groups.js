@@ -22,11 +22,11 @@ var {
 } = React;
 /** @todo move it to wp-config.json **/
 // The URL for the `posts` endpoint provided by WP JSON API
-var REQUEST_URL = 'http://localhost/wp-json/bp/v1/activity';
+var REQUEST_URL = 'http://localhost/wp-json/bp/v1/groups';
 var BpPage = require('../Page');
-var BpActivityCell = require('./ActivityCell');
+var BpGroupCell = require('./GroupCell');
 var TimerMixin = require('react-timer-mixin');
-var BpMembers = require('./Members');
+
 var invariant = require('invariant');
 var dismissKeyboard = require('dismissKeyboard');
 
@@ -42,7 +42,7 @@ var resultsCache = {
 
 var LOADING = {};
 
-var BpActivity = React.createClass({
+var BpGroups = React.createClass({
   mixins: [TimerMixin],
 
   timeoutID: (null: any),
@@ -107,16 +107,9 @@ var BpActivity = React.createClass({
         });
       })
       .then((responseData) => {
-        if(! responseData){
-          this.setState({
-            dataSource: this.getDataSource([]),
-            isLoading: false,
-          });
-          return ;
-        }
         LOADING[query] = false;
-        resultsCache.totalForQuery[query] = responseData.activity.length;
-        resultsCache.dataForQuery[query] = responseData.activity;
+        resultsCache.totalForQuery[query] = responseData.groups.length;
+        resultsCache.dataForQuery[query] = responseData.groups;
         resultsCache.nextPageNumberForQuery[query] = 2;
 
         if (this.state.filter !== query) {
@@ -127,7 +120,7 @@ var BpActivity = React.createClass({
         this.setState({
           hasMore: responseData.has_more_items,
           isLoading: false,
-          dataSource: this.getDataSource(responseData.activity),
+          dataSource: this.getDataSource(responseData.groups),
         });
       })
       .done();
@@ -139,7 +132,7 @@ var BpActivity = React.createClass({
 		var items = [];
 		var dateItems = this.state.data ;
 		var that = this;
-		dateItems.activity.forEach(function( single_activity, index	) {
+		dateItems.groups.forEach(function( single_activity, index	) {
 			items.push( that.makeSingleItem( single_activity, index ) );
 		})
 
@@ -180,11 +173,11 @@ var BpActivity = React.createClass({
 
         LOADING[query] = false;
         // We reached the end of the list before the expected number of results
-        if (!responseData.activity) {
+        if (!responseData.groups) {
           resultsCache.totalForQuery[query] = moviesForQuery.length;
         } else {
-          for (var i in responseData.activity) {
-            moviesForQuery.push(responseData.activity[i]);
+          for (var i in responseData.groups) {
+            moviesForQuery.push(responseData.groups[i]);
           }
           resultsCache.dataForQuery[query] = moviesForQuery;
           resultsCache.nextPageNumberForQuery[query] += 1;
@@ -210,8 +203,8 @@ var BpActivity = React.createClass({
     if (Platform.OS === 'ios') {
       this.props.navigator.push({
         title: activity.title,
-        component: BpMembers,
-        passProps: {activity},
+        component: MovieScreen,
+        passProps: {movie},
       });
     } else {
       dismissKeyboard();
@@ -271,7 +264,7 @@ var BpActivity = React.createClass({
 		);
 	},
 	renderNoActivityView : function(){
-		<BpPage title={this.props.navigator ? null : 'Activity'} navigator={this.props.navigator}>
+		<BpPage title={this.props.navigator ? null : 'Activity'}>
 			<View style={styles.container}>
 				<Text>
 					No Activity...
@@ -281,24 +274,24 @@ var BpActivity = React.createClass({
 	},
 
   renderRow: function(
-    activity: Object,
+    group: Object,
     sectionID: number | string,
     rowID: number | string,
     highlightRowFunc: (sectionID: ?number | string, rowID: ?number | string) => void,
   ) {
     return (
-      <BpActivityCell
-        key={activity.id}
-        onSelect={() => this.selectActivity(activity)}
+      <BpGroupCell
+        key={group.id}
+        onSelect={() => this.selectActivity(group)}
         onHighlight={() => highlightRowFunc(sectionID, rowID)}
         onUnhighlight={() => highlightRowFunc(null, null)}
-        activity={activity}
+        group={group}
       />
     );
   },
-	render: function() {
+  render: function() {
     var content = this.state.dataSource.getRowCount() === 0 ?
-      <NoActivity
+      <NoGroup
         filter={this.state.filter}
         isLoading={this.state.isLoading}
       /> :
@@ -318,7 +311,7 @@ var BpActivity = React.createClass({
       />;
 
     return (
-      <BpPage title={'Activity'} navigator={this.props.navigator}>
+      <BpPage title={'Groups'} navigator={this.props.navigator}>
         <View style={styles.container}>
           <View style={styles.separator} />
           {content}
@@ -398,15 +391,15 @@ var styles = StyleSheet.create({
   },
 });
 
-var NoActivity = React.createClass({
+var NoGroup = React.createClass({
   render: function() {
     var text = '';
     if (this.props.filter) {
-      text = `No Activity`;
+      text = `No Group`;
     } else if (!this.props.isLoading) {
       // If we're looking at the latest movies, aren't currently loading, and
       // still have no results, show a message
-      text = 'No Activity found';
+      text = 'No Group found';
     }
 
     return (
@@ -418,4 +411,4 @@ var NoActivity = React.createClass({
 });
 
 
-module.exports = BpActivity;
+module.exports = BpGroups;

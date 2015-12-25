@@ -7,45 +7,34 @@
 var React = require('react-native');
 var {
   AppRegistry,
-  StyleSheet,
-  Text,
-  View,
   Navigator,
 } = React;
-var BpActivity = require('./Page/Activity');
-var BpPage = require('./Page');
-
 var BpNativeApp = React.createClass({
-  render: function() {
-    return ( <Navigator
-      initialRoute={{name: 'My First Scene', index: 0}}
-      renderScene={(route, navigator) =>
-      <BpActivity
-        name={route.name}
-        onForward={() => {
-          var nextIndex = route.index + 1;
-          navigator.push({
-            name: 'Scene ' + nextIndex,
-            index: nextIndex,
-          });
-        }}
-        onBack={() => {
-          if (route.index > 0) {
-            navigator.pop();
-          }
-        }}
-      />
+  renderScene: function(route, nav) {
+    switch (route.id.toString().toLowerCase()) {
+      case 'activity':
+        var BpActivity = require('./Page/Activity');
+        return <BpActivity navigator={nav} />;
+      case 'members':
+        var BpMembers = require('./Page/Members');
+        return <BpMembers navigator={nav} />;
+      case 'groups':
+          var BpGroups = require('./Page/Groups');
+          return <BpGroups navigator={nav} />;
+      default:
+        return (
+          <View>
+          </View>
+        );
     }
-    />
+  },
+  render: function() {
+    return (
+      <Navigator
+        initialRoute={ { id: 'activity' } }
+        renderScene= { this.renderScene }
+      />
     );
   }
 });
-
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
-});
-
 AppRegistry.registerComponent('bpNativeApp', () => BpNativeApp);

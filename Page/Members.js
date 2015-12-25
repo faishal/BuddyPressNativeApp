@@ -22,9 +22,9 @@ var {
 } = React;
 /** @todo move it to wp-config.json **/
 // The URL for the `posts` endpoint provided by WP JSON API
-var REQUEST_URL = 'http://localhost/wp-json/bp/v1/groups';
+var REQUEST_URL = 'http://localhost/wp-json/bp/v1/members';
 var BpPage = require('../Page');
-var BpActivityCell = require('./ActivityCell');
+var BpMemberCell = require('./MemberCell');
 var TimerMixin = require('react-timer-mixin');
 
 var invariant = require('invariant');
@@ -94,8 +94,10 @@ var BpMembers = React.createClass({
     });
 
     fetch(this._urlForQueryAndPage(query, 1))
-      .then((response) => response.json())
-      .catch((error) => {
+      .then((response) => {
+        return response.json();
+      }
+      ).catch((error) => {
         LOADING[query] = false;
         resultsCache.dataForQuery[query] = undefined;
 
@@ -106,9 +108,8 @@ var BpMembers = React.createClass({
       })
       .then((responseData) => {
         LOADING[query] = false;
-
-        resultsCache.totalForQuery[query] = responseData.activity.length;
-        resultsCache.dataForQuery[query] = responseData.activity;
+        resultsCache.totalForQuery[query] = responseData.members.length;
+        resultsCache.dataForQuery[query] = responseData.members;
         resultsCache.nextPageNumberForQuery[query] = 2;
 
         if (this.state.filter !== query) {
@@ -119,7 +120,7 @@ var BpMembers = React.createClass({
         this.setState({
           hasMore: responseData.has_more_items,
           isLoading: false,
-          dataSource: this.getDataSource(responseData.activity),
+          dataSource: this.getDataSource(responseData.members),
         });
       })
       .done();
@@ -131,7 +132,7 @@ var BpMembers = React.createClass({
 		var items = [];
 		var dateItems = this.state.data ;
 		var that = this;
-		dateItems.activity.forEach(function( single_activity, index	) {
+		dateItems.members.forEach(function( single_activity, index	) {
 			items.push( that.makeSingleItem( single_activity, index ) );
 		})
 
@@ -172,11 +173,11 @@ var BpMembers = React.createClass({
 
         LOADING[query] = false;
         // We reached the end of the list before the expected number of results
-        if (!responseData.activity) {
+        if (!responseData.members) {
           resultsCache.totalForQuery[query] = moviesForQuery.length;
         } else {
-          for (var i in responseData.activity) {
-            moviesForQuery.push(responseData.activity[i]);
+          for (var i in responseData.members) {
+            moviesForQuery.push(responseData.members[i]);
           }
           resultsCache.dataForQuery[query] = moviesForQuery;
           resultsCache.nextPageNumberForQuery[query] += 1;
@@ -273,24 +274,24 @@ var BpMembers = React.createClass({
 	},
 
   renderRow: function(
-    activity: Object,
+    member: Object,
     sectionID: number | string,
     rowID: number | string,
     highlightRowFunc: (sectionID: ?number | string, rowID: ?number | string) => void,
   ) {
     return (
-      <BpActivityCell
-        key={activity.id}
-        onSelect={() => this.selectActivity(activity)}
+      <BpMemberCell
+        key={member.id}
+        onSelect={() => this.selectActivity(members)}
         onHighlight={() => highlightRowFunc(sectionID, rowID)}
         onUnhighlight={() => highlightRowFunc(null, null)}
-        activity={activity}
+        member={member}
       />
     );
   },
-	render: function() {
+  render: function() {
     var content = this.state.dataSource.getRowCount() === 0 ?
-      <NoActivity
+      <NoMember
         filter={this.state.filter}
         isLoading={this.state.isLoading}
       /> :
@@ -310,7 +311,7 @@ var BpMembers = React.createClass({
       />;
 
     return (
-      <BpPage title={this.props.navigator ? null : 'Activity'}>
+      <BpPage title={'Members'} navigator={this.props.navigator}>
         <View style={styles.container}>
           <View style={styles.separator} />
           {content}
@@ -390,15 +391,15 @@ var styles = StyleSheet.create({
   },
 });
 
-var NoActivity = React.createClass({
+var NoMember = React.createClass({
   render: function() {
     var text = '';
     if (this.props.filter) {
-      text = `No Activity`;
+      text = `No Member`;
     } else if (!this.props.isLoading) {
       // If we're looking at the latest movies, aren't currently loading, and
       // still have no results, show a message
-      text = 'No Activity found';
+      text = 'No Member found';
     }
 
     return (
